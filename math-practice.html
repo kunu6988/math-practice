@@ -1,0 +1,181 @@
+<html>
+<head>
+    <title>Mental Math Practice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .settings {
+            margin-bottom: 20px;
+        }
+
+        .question {
+            margin: 15px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        input[type="number"] {
+            width: 100px;
+            padding: 5px;
+            margin-left: 10px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .correct { background-color: #dfffdf; }
+        .incorrect { background-color: #ffe5e5; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Mental Math Practice</h1>
+        
+        <div class="settings">
+            <div>
+                <label>Number of questions:</label>
+                <input type="number" id="questionCount" value="10" min="1" max="50">
+            </div>
+            <div>
+                <label>Operations:</label>
+                <label><input type="checkbox" class="operation" value="+" checked> Addition</label>
+                <label><input type="checkbox" class="operation" value="-"> Subtraction</label>
+                <label><input type="checkbox" class="operation" value="×"> Multiplication</label>
+                <label><input type="checkbox" class="operation" value="÷"> Division</label>
+            </div>
+            <button onclick="startPractice()">Start Practice</button>
+        </div>
+
+        <div id="practiceArea" style="display: none;">
+            <div id="questions"></div>
+            <button onclick="checkAnswers()">Check Answers</button>
+        </div>
+
+        <div id="results" class="results" style="display: none;"></div>
+    </div>
+
+    <script>
+        let currentProblems = [];
+
+        function generateProblem(operations) {
+            const operation = operations[Math.floor(Math.random() * operations.length)];
+            let question, answer;
+
+            if (operation === '+') {
+                const numCount = Math.floor(Math.random() * 3) + 2; // 2-4 numbers
+                const numbers = Array.from({length: numCount}, () => Math.floor(Math.random() * 50) + 1);
+                question = numbers.join(' + ');
+                answer = numbers.reduce((a, b) => a + b, 0);
+            }
+            else if (operation === '-') {
+                const numCount = Math.floor(Math.random() * 3) + 2; // 2-4 numbers
+                const numbers = Array.from({length: numCount}, () => Math.floor(Math.random() * 50) + 1);
+                const total = numbers.slice(1).reduce((a, b) => a + b, 0);
+                numbers[0] = total + Math.floor(Math.random() * 50) + 1;
+                question = numbers.join(' - ');
+                answer = numbers[0] - total;
+            }
+            else if (operation === '×') {
+                const numCount = Math.floor(Math.random() * 2) + 2; // 2-3 numbers
+                const numbers = Array.from({length: numCount}, () => Math.floor(Math.random() * 12) + 1);
+                question = numbers.join(' × ');
+                answer = numbers.reduce((a, b) => a * b, 1);
+            }
+            else if (operation === '÷') {
+                answer = Math.floor(Math.random() * 15) + 2;
+                const divisors = Array.from({length: 2}, () => Math.floor(Math.random() * 12) + 2);
+                let current = answer;
+                divisors.forEach(div => current *= div);
+                question = ${current} ÷ ${divisors.join(' ÷ ')};
+            }
+
+            return { question, answer };
+        }
+
+        function startPractice() {
+            const questionCount = parseInt(document.getElementById('questionCount').value);
+            const operations = Array.from(document.querySelectorAll('.operation:checked')).map(el => el.value);
+            
+            if (operations.length === 0) {
+                alert('Please select at least one operation!');
+                return;
+            }
+
+            currentProblems = [];
+            const questionsDiv = document.getElementById('questions');
+            questionsDiv.innerHTML = '';
+
+            for (let i = 0; i < questionCount; i++) {
+                const problem = generateProblem(operations);
+                currentProblems.push(problem);
+                
+                const div = document.createElement('div');
+                div.className = 'question';
+                div.innerHTML = `
+                    <span>${i + 1}. ${problem.question} = </span>
+                    <input type="number" class="answer">
+                `;
+                questionsDiv.appendChild(div);
+            }
+
+            document.querySelector('.settings').style.display = 'none';
+            document.getElementById('practiceArea').style.display = 'block';
+        }
+
+        function checkAnswers() {
+            const answerInputs = document.getElementsByClassName('answer');
+            let correctCount = 0;
+            let resultsHTML = '<h3>Results:</h3>';
+
+            currentProblems.forEach((problem, index) => {
+                const userAnswer = parseFloat(answerInputs[index].value);
+                const isCorrect = userAnswer === problem.answer;
+                
+                if (isCorrect) correctCount++;
+                
+                resultsHTML += `
+                    <div class="${isCorrect ? 'correct' : 'incorrect'}">
+                        ${index + 1}. ${problem.question} = ${userAnswer || '?'}
+                        ${!isCorrect ? ` (Correct: ${problem.answer})` : ''}
+                    </div>
+                `;
+            });
+
+            resultsHTML += <h4>Score: ${correctCount}/${currentProblems.length}</h4>;
+            document.getElementById('results').innerHTML = resultsHTML;
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
